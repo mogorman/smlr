@@ -53,11 +53,11 @@ defmodule Smlr.Plugs.Smlr do
     }
   end
 
-  def parse_request_header([], _opts) do
+  defp parse_request_header([], _opts) do
     nil
   end
 
-  def parse_request_header([header], %{ignore_client_weight: true} = opts) do
+  defp parse_request_header([header], %{ignore_client_weight: true} = opts) do
     schemes =
       String.downcase(header)
       |> String.split(",")
@@ -73,7 +73,7 @@ defmodule Smlr.Plugs.Smlr do
     end)
   end
 
-  def parse_request_header([header], opts) do
+  defp parse_request_header([header], opts) do
     schemes = String.split(header, ",")
 
     {choice, _weight} =
@@ -165,38 +165,21 @@ defmodule Smlr.Plugs.Smlr do
     end)
   end
 
-  def compress_response(conn, opts) do
+  defp compress_response(conn, opts) do
     conn
     |> put_resp_header("content-encoding", opts.compressor)
     |> Map.put(:resp_body, compress(conn.resp_body, opts))
   end
 
-  def compress(body, opts) do
-    body = "#{body}"
-
+  defp compress(body, opts) do
+    # We do this because io lists are a pain and strings are easy
     case Smlr.get_from_cache(body, opts.compressor, opts) do
       nil ->
-        run_compress(body, opts.compressor)
+        Smlr.run_compress(body, opts.compressor)
         |> Smlr.set_for_cache(body, opts.compressor, opts)
 
       compressed ->
         compressed
     end
-  end
-
-  def run_compress(body, "gzip") do
-    :zlib.gzip(body)
-  end
-
-  def run_compress(body, "deflate") do
-    :zlib.compress(body)
-  end
-
-  def run_compress(body, "br") do
-    :brotli.encode(body)
-  end
-
-  def run_compress(body, "zstd") do
-    :zstd.compress(body)
   end
 end

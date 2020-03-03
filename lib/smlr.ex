@@ -79,4 +79,20 @@ defmodule Smlr do
 
     compressed
   end
+
+  def run_compress(body, "gzip") do
+    :zlib.gzip(body)
+  end
+
+  def run_compress(body, "deflate") do
+    :zlib.compress(body)
+  end
+
+  def run_compress(body, "br") do
+    :brotli.encode(body)
+  end
+
+  def run_compress(body, "zstd") do
+    :zstd.compress(body)
+  end
 end
