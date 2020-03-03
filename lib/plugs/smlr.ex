@@ -175,7 +175,7 @@ defmodule Smlr.Plugs.Smlr do
     # We do this because io lists are a pain and strings are easy
     case Smlr.get_from_cache(body, opts.compressor, opts) do
       nil ->
-        Smlr.run_compress(body, opts.compressor)
+        Smlr.run_compress(:erlang.iolist_to_binary(body), opts.compressor)
         |> Smlr.set_for_cache(body, opts.compressor, opts)
 
       compressed ->
