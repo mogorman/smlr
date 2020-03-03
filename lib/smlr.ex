@@ -16,23 +16,23 @@ defmodule Smlr do
     end
   end
 
-  def valid_compressor?("gzip") do
+  defp valid_compressor?("gzip") do
     true
   end
 
-  def valid_compressor?("deflate") do
+  defp valid_compressor?("deflate") do
     true
   end
 
-  def valid_compressor?("br") do
+  defp valid_compressor?("br") do
     true
   end
 
-  def valid_compressor?("zstd") do
+  defp valid_compressor?("zstd") do
     true
   end
 
-  def valid_compressor?(_) do
+  defp valid_compressor?(_) do
     false
   end
 
