@@ -37,7 +37,7 @@ defmodule Smlr.Plugs.Smlr do
           %{
             enabled: Map.get(cache, :enabled, false),
             timeout: Map.get(cache, :timeout, :infinity),
-            max_cache_responses: Map.get(cache, :max_cache_resposnes, nil),
+            max_cache_responses: Map.get(cache, :max_cache_responses, nil),
             name: Map.get(cache, :name, :smlr)
           }
       end
