@@ -16,7 +16,7 @@ defmodule Smlr.MixProject do
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.post": :test,
-        "coveralls.html": :test,
+        "coveralls.html": :test
       ],
       # Docs
       name: "Smlr",
@@ -26,8 +26,8 @@ defmodule Smlr.MixProject do
         # The main page in the docs
         main: "Smlr",
         logo: "smlr.png",
-        extras: ["README.md"],
-      ],
+        extras: ["README.md"]
+      ]
     ]
   end
 
@@ -39,14 +39,14 @@ defmodule Smlr.MixProject do
   end
 
   defp description() do
-    "Smlr provides a plug for compressing dynamic content in phoenix and the ability to cache it temporarily."
+    "Smlr provides a plug for compressing dynamic content in phoenix and optionally cache the compression."
   end
 
   defp package() do
     [
       maintainers: ["Matthew O'Gorman mog@rldn.net"],
       links: %{"GitHub" => "https://github.com/mogorman/smlr"},
-      licenses: ["MIT"],
+      licenses: ["MIT"]
     ]
   end
 
@@ -59,7 +59,9 @@ defmodule Smlr.MixProject do
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:mock, "~> 0.3.0", only: :test},
       {:plug, ">= 1.6.0"},
-      {:cachex, "~> 3.2"}
+      {:cachex, "~> 3.2"},
+      {:brotli, "~> 0.2.1"},
+      {:zstd, "~> 0.2.0"}
     ]
   end
 end
