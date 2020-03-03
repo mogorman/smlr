@@ -62,7 +62,7 @@ defmodule Smlr do
     end
   end
 
-  def set_for_cache(compressed, _body, %{cache: %{enabled: false}}) do
+  def set_for_cache(compressed, _type, _body, %{cache: %{enabled: false}}) do
     compressed
   end
 
