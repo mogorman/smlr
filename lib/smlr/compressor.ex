@@ -6,6 +6,6 @@ defmodule Smlr.Compressor do
 
   @callback compress(String.t(), Keyword.t()) :: binary()
   @callback name() :: String.t()
-  @callback level(Keyword.t()) :: Integer.t()
-  @callback default_level() :: Integer.t()
+  @callback level(Keyword.t()) :: integer()
+  @callback default_level() :: integer()
 end
