@@ -21,13 +21,7 @@ defmodule Smlr do
   @doc ~S"""
   Init function sets all default variables and .
   """
-  def init(opts) when is_list(opts) do
-    opts
-    |> Enum.chunk_every(2)
-    |> Enum.into(%{}, fn [key, val] -> {key, val} end)
-    |> init()
-  end
-
+  @spec init(Keyword.t()) :: Keyword.t()
   def init(opts) do
     opts
   end
@@ -150,34 +144,38 @@ defmodule Smlr do
 
   defp pass_or_compress(compressor, conn, opts) do
     Conn.register_before_send(conn, fn conn ->
-      compress_response(conn, Map.put(opts, :compressor, compressor))
+      compress_response(conn, opts ++ [compressor: compressor])
     end)
   end
 
   defp compress_response(conn, opts) do
+    compressor = Keyword.get(opts, :compressor)
+
     conn
-    |> Conn.put_resp_header("content-encoding", opts.compressor.name())
-    |> Map.put(:resp_body, compress(conn.resp_body, conn.request_path, opts))
+    |> Conn.put_resp_header("content-encoding", compressor.name())
+    |> Map.put(:resp_body, compress(conn.resp_body, conn.request_path, compressor, opts))
   end
 
-  defp compress(body, path, opts) do
+  defp compress(body, path, compressor, opts) do
     # We do this because io lists are a pain and strings are easy
-    case Cache.get_from_cache(body, opts.compressor.name(), Config.config(:cache_opts, opts)) do
+    case Cache.get(body, compressor.name(), compressor.level(opts), Config.config(:cache_opts, opts)) do
       nil ->
         :telemetry.execute([:smlr, :request, :compress], %{}, %{
           path: path,
-          compressor: opts.compressor.name(),
-          level: opts.compressor.level(opts)
+          compressor: compressor.name(),
+          level: compressor.level(opts)
         })
 
-        opts.compressor.compress(:erlang.iolist_to_binary(body), opts)
-        |> Cache.set_for_cache(body, opts.compressor.name(), Config.config(:cache, opts))
+        body = :erlang.iolist_to_binary(body)
+
+        compressor.compress(body, opts)
+        |> Cache.set(body, compressor.name(), compressor.level(opts), Config.config(:cache, opts))
 
       compressed ->
         :telemetry.execute([:smlr, :request, :cache], %{}, %{
           path: path,
-          compressor: opts.compressor.name(),
-          level: opts.compressor.level(opts)
+          compressor: compressor.name(),
+          level: compressor.level(opts)
         })
 
         compressed
