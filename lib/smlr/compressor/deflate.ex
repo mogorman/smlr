@@ -5,16 +5,16 @@ defmodule Smlr.Compressor.Deflate do
 
   alias Smlr.Config
 
-  def name() do
+  def name do
     "deflate"
+  end
+
+  def default_level do
+    4
   end
 
   def level(opts) do
     Config.get_compressor_level(__MODULE__, opts)
-  end
-
-  def default_level() do
-    4
   end
 
   def compress(data, opts) do

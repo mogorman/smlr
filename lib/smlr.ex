@@ -13,8 +13,9 @@ defmodule Smlr do
       end
   """
   require Logger
-  alias Smlr.{Cache, Config}
+
   alias Plug.Conn
+  alias Smlr.{Cache, Config}
 
   @impl Plug
   @doc ~S"""
