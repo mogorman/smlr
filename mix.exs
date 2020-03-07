@@ -4,7 +4,7 @@ defmodule Smlr.MixProject do
   def project do
     [
       app: :smlr,
-      version: "0.1.3",
+      version: "0.2.0",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -61,7 +61,8 @@ defmodule Smlr.MixProject do
       {:plug, ">= 1.6.0"},
       {:cachex, "~> 3.2"},
       {:brotli, "~> 0.2.1"},
-      {:zstd, "~> 0.2.0"}
+      {:zstd, "~> 0.2.0"},
+      {:telemetry, "~> 0.4.1"}
     ]
   end
 end

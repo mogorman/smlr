@@ -1,98 +1,185 @@
 defmodule Smlr do
-  @moduledoc """
-  Documentation for Smlr.
-  """
+  @behaviour Plug
+  @moduledoc ~S"""
+  Compresses the output of the plug with the correct compressor,
+  if enabled cache the compressed output so that when requested again we can return it instantly
+  rather than having to compress it again.
 
-  def try_start_cache(%{enabled: false}) do
+  Add the plug at the bottom of one or more pipelines in `router.ex`:
+
+      pipeline "myapp" do
+        # ...
+        plug (Smlr)
+      end
+  """
+  require Logger
+  alias Smlr.{Cache, Config}
+  alias Plug.Conn
+
+  @impl Plug
+  @doc ~S"""
+  Init function sets all default variables and .
+  """
+  def init(opts) when is_list(opts) do
+    opts
+    |> Enum.chunk_every(2)
+    |> Enum.into(%{}, fn [key, val] -> {key, val} end)
+    |> init()
+  end
+
+  def init(opts) do
+    opts
+  end
+
+  defp parse_request_header([], _compressors, _ignore_client_weight) do
     nil
   end
 
-  def try_start_cache(%{enabled: true, max_cache_responses: limit, name: name}) do
-    case Cachex.start(name, limit: limit) do
-      {:ok, _} -> nil
-      # this is because in dev mode plug init is called on every connection and it would be annoying for most users
-      {:error, :not_started} -> nil
-      {:error, {:already_started, _}} -> nil
-    end
-  end
+  defp parse_request_header([header], compressors, true) do
+    schemes =
+      String.downcase(header)
+      |> String.split(",")
+      |> Enum.map(fn scheme ->
+        scheme
+        |> String.split(";")
+        |> Enum.at(0)
+        |> String.trim()
+      end)
 
-  defp valid_compressor?("gzip") do
-    true
-  end
-
-  defp valid_compressor?("deflate") do
-    true
-  end
-
-  defp valid_compressor?("br") do
-    true
-  end
-
-  defp valid_compressor?("zstd") do
-    true
-  end
-
-  defp valid_compressor?(_) do
-    false
-  end
-
-  def supported_compressors(compressors) do
-    Enum.reduce(compressors, [], fn compressor, acc ->
-      compressor = String.downcase(compressor) |> String.trim()
-
-      case valid_compressor?(compressor) do
-        true ->
-          acc ++ [compressor]
-
-        false ->
-          acc
-      end
+    Enum.find(compressors, nil, fn compressor ->
+      compressor.name() in schemes
     end)
   end
 
-  def get_from_cache(_body, _type, %{cache: %{enabled: false}}) do
-    nil
+  defp parse_request_header([header], compressors, false) do
+    schemes = String.split(header, ",")
+
+    {choice, _weight} =
+      Enum.reduce(schemes, {nil, -1}, fn scheme, acc ->
+        split_scheme = String.split(scheme, ";")
+
+        case Enum.count(split_scheme) do
+          1 ->
+            Enum.at(split_scheme, 0)
+            |> String.trim()
+            |> String.downcase()
+            |> enabled_compressor(compressors)
+            |> choose_compressor(acc)
+
+          2 ->
+            new_weight = get_weight(Enum.at(split_scheme, 1))
+
+            Enum.at(split_scheme, 0)
+            |> String.trim()
+            |> String.downcase()
+            |> enabled_compressor(compressors, new_weight)
+            |> choose_compressor(acc)
+        end
+      end)
+
+    choice
   end
 
-  def get_from_cache(body, type, %{cache: %{enabled: true, name: name}} = opts) do
-    case Cachex.get(name, "#{type}#{body}") do
-      {:error, :no_cache} -> try_start_cache(opts.cache)
-      {:error, _} -> nil
-      {:ok, compressed} -> compressed
-    end
-  end
+  defp get_weight(weight) do
+    split_string = String.split(weight, "=")
 
-  def set_for_cache(compressed, _type, _body, %{cache: %{enabled: false}}) do
-    compressed
-  end
+    case Enum.count(split_string) do
+      2 ->
+        number =
+          Enum.at(split_string, 1)
+          |> String.trim()
 
-  def set_for_cache(compressed, type, body, %{
-        cache: %{enabled: true, timeout: timeout, name: name}
-      }) do
-    case timeout do
-      :infinity ->
-        Cachex.put(name, "#{type}#{body}", compressed)
+        case String.contains?(number, ".") do
+          true ->
+            Float.parse(number)
+
+          false ->
+            Integer.parse(number)
+        end
 
       _ ->
-        Cachex.put(name, "#{type}#{body}", compressed, ttl: :timer.seconds(timeout))
+        -1
     end
-
-    compressed
   end
 
-  def run_compress(body, "gzip") do
-    :zlib.gzip(body)
+  defp choose_compressor({new_choice, new_choice_weight}, {current_choice, current_choice_weight}) do
+    case current_choice_weight >= new_choice_weight do
+      true ->
+        {current_choice, current_choice_weight}
+
+      false ->
+        {new_choice, new_choice_weight}
+    end
   end
 
-  def run_compress(body, "deflate") do
-    :zlib.compress(body)
+  defp enabled_compressor(compression, compressors, weight \\ 0) do
+    case Enum.find(compressors, nil, fn compressor ->
+           compressor.name() == compression
+         end) do
+      nil ->
+        {nil, -1}
+
+      compressor ->
+        {compressor, weight}
+    end
   end
 
-  def run_compress(body, "br") do
-    :brotli.encode(body)
+  @impl Plug
+  @doc ~S"""
+  Call function. we check to see if the client has requested compression if it has, we register call back and compress before sending
+  """
+  @spec call(Conn.t(), Keyword.t()) :: Conn.t()
+  def call(conn, opts) do
+    case Config.config(:enabled, opts) do
+      true ->
+        conn
+        |> Conn.get_req_header("accept-encoding")
+        |> parse_request_header(Config.config(:compressors, opts), Config.config(:ignore_client_weight, opts))
+        |> pass_or_compress(conn, opts)
+
+      false ->
+        conn
+    end
   end
 
-  def run_compress(body, "zstd") do
-    :zstd.compress(body)
+  defp pass_or_compress(nil, conn, _opts) do
+    :telemetry.execute([:smlr, :request, :pass], %{}, %{path: conn.request_path})
+    conn
+  end
+
+  defp pass_or_compress(compressor, conn, opts) do
+    Conn.register_before_send(conn, fn conn ->
+      compress_response(conn, Map.put(opts, :compressor, compressor))
+    end)
+  end
+
+  defp compress_response(conn, opts) do
+    conn
+    |> Conn.put_resp_header("content-encoding", opts.compressor.name())
+    |> Map.put(:resp_body, compress(conn.resp_body, conn.request_path, opts))
+  end
+
+  defp compress(body, path, opts) do
+    # We do this because io lists are a pain and strings are easy
+    case Cache.get_from_cache(body, opts.compressor.name(), Config.config(:cache_opts, opts)) do
+      nil ->
+        :telemetry.execute([:smlr, :request, :compress], %{}, %{
+          path: path,
+          compressor: opts.compressor.name(),
+          level: opts.compressor.level(opts)
+        })
+
+        opts.compressor.compress(:erlang.iolist_to_binary(body), opts)
+        |> Cache.set_for_cache(body, opts.compressor.name(), Config.config(:cache, opts))
+
+      compressed ->
+        :telemetry.execute([:smlr, :request, :cache], %{}, %{
+          path: path,
+          compressor: opts.compressor.name(),
+          level: opts.compressor.level(opts)
+        })
+
+        compressed
+    end
   end
 end
