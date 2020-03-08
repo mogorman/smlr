@@ -57,8 +57,7 @@ The following configuration options are supported:
       enable: false,
       timeout: :infinity,
       limit: nil
-    }
-```
+    }```
 * `:ignore_client_weight` Compress via the order of the `compressors` list rather than what the client indicated their prefrence is. Default `false`
 
 ## Metrics
