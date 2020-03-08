@@ -27,6 +27,10 @@ Metrics are implemented via telemetry.
 ## in your router simply add
 plug(Smlr)
 ## At the end of your plug chain.
+
+## To compress your websocket traffic add
+compress: true
+to your endpoint as described here https://hexdocs.pm/phoenix/Phoenix.Endpoint.html#socket/3-examples
 ```
 
 ## Installation
