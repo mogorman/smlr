@@ -33,16 +33,16 @@ defmodule Smlr.ApplicationTest do
     {:ok, pid} = Smlr.Application.start(nil, nil)
     assert(is_pid(pid))
 
-    Smlr.Cache.set(compressed, "body", "br", 4, %{cache: %{enable: true, timeout: :infinity, name: :smlr_test}})
-    result = Smlr.Cache.get("body", "br", 4, %{cache_opts: %{enable: true}})
+    Smlr.Cache.set(compressed, "body", "br", 4, %{enable: true, timeout: :infinity, name: :smlr_test})
+    result = Smlr.Cache.get("body", "br", 4, %{enable: true})
     assert(result == <<1, 2, 3, 4>>)
 
-    result = Smlr.Cache.get("bodys", "br", 4, %{cache_opts: %{enable: true}})
+    result = Smlr.Cache.get("bodys", "br", 4, %{enable: true})
     assert(is_nil(result))
 
-    Smlr.Cache.set(compressed, "body", "br", 4, %{cache: %{enable: true, timeout: 1, name: :smlr_test}})
+    Smlr.Cache.set(compressed, "body", "br", 4, %{enable: true, timeout: 1, name: :smlr_test})
     :timer.sleep(1010)
-    result = Smlr.Cache.get("body", "br", 4, %{cache_opts: %{enable: true}})
+    result = Smlr.Cache.get("body", "br", 4, %{enable: true})
     assert(is_nil(result))
 
     Cachex.put(Smlr.DefaultCache, "qfdsa", <<4, 4, 4, 4>>)

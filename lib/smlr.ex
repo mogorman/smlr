@@ -1,17 +1,8 @@
 defmodule Smlr do
+  ## (I stole this trick from Jose --pete) --mog
+  @moduledoc File.read!("README.md") |> String.split("<!-- end_header -->") |> Enum.at(1)
+
   @behaviour Plug
-  @moduledoc ~S"""
-  Compresses the output of the plug with the correct compressor,
-  if enabled cache the compressed output so that when requested again we can return it instantly
-  rather than having to compress it again.
-
-  Add the plug at the bottom of one or more pipelines in `router.ex`:
-
-      pipeline "myapp" do
-        # ...
-        plug (Smlr)
-      end
-  """
   require Logger
 
   alias Plug.Conn
@@ -173,7 +164,7 @@ defmodule Smlr do
         body = :erlang.iolist_to_binary(body)
 
         compressor.compress(body, opts)
-        |> Cache.set(body, compressor.name(), compressor.level(opts), Config.config(:cache, opts))
+        |> Cache.set(body, compressor.name(), compressor.level(opts), Config.config(:cache_opts, opts))
 
       compressed ->
         :telemetry.execute([:smlr, :request, :cache], %{}, %{

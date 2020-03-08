@@ -10,7 +10,6 @@ defmodule Smlr.Config do
       Smlr.Compressor.Zstd
     ],
     compressor_opts: [],
-    cache: Smlr.DefaultCache,
     cache_opts: %{
       enable: false,
       timeout: :infinity,

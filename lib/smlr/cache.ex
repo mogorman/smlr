@@ -4,7 +4,7 @@ defmodule Smlr.Cache do
   """
 
   @spec get(binary(), String.t(), integer(), map()) :: nil | binary()
-  def get(body, type, level, %{cache_opts: %{enable: true}}) do
+  def get(body, type, level, %{enable: true}) do
     case Cachex.get(Smlr.DefaultCache, "#{type}#{level}#{body}") do
       {:error, :no_cache} ->
         :telemetry.execute([:smlr, :request, :cache, :not_started], %{}, %{})
@@ -25,7 +25,7 @@ defmodule Smlr.Cache do
   end
 
   @spec set(binary(), String.t(), binary(), integer(), map()) :: binary()
-  def set(compressed, body, type, level, %{cache: %{enable: true, timeout: timeout}}) do
+  def set(compressed, body, type, level, %{enable: true, timeout: timeout}) do
     case timeout do
       :infinity -> Cachex.put(Smlr.DefaultCache, "#{type}#{level}#{body}", compressed)
       _ -> Cachex.put(Smlr.DefaultCache, "#{type}#{level}#{body}", compressed, ttl: :timer.seconds(timeout))
