@@ -65,13 +65,13 @@ The following configuration options are supported:
 Metrics are offered via the [Telemetry
 library](https://github.com/beam-telemetry/telemetry). The following
 metrics are emitted:
-`[:smlr, :request, :pass]` Client and Server had no compatible compressors, or client did not request compression
-`[:smlr, :request, :compress]` Compressed response
-`[:smlr, :request, :cache]` Served compress content from cache
-`[:smlr, :request, :cache, :not_started]` Cachex was called but had not been started yet.
-`[:smlr, :request, :cache, :miss]`
-`[:smlr, :request, :cache, :hit]`
-`[:smlr, :request, :cache, :set]`
+* `[:smlr, :request, :pass]` Client and Server had no compatible compressors, or client did not request compression
+* `[:smlr, :request, :compress]` Compressed response
+* `[:smlr, :request, :cache]` Served compress content from cache
+* `[:smlr, :request, :cache, :not_started]` Cachex was called but had not been started yet.
+* `[:smlr, :request, :cache, :miss]`
+* `[:smlr, :request, :cache, :hit]`
+* `[:smlr, :request, :cache, :set]`
 
 ## Contributing
 
