@@ -7,7 +7,7 @@
 <img src="https://img.shields.io/hexpm/dt/smlr" alt="Downloads"/>
 </p>
 
-# Smlr: (gzip, deflate, br, zstd) compressor plug
+# Smlr: compressor plug
 <!-- end_header -->
 Supports gzip, deflate, br, and zstd
 
