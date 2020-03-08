@@ -30,7 +30,7 @@ plug(Smlr)
 
 ## To compress your websocket traffic add
 compress: true
-to your endpoint as described here https://hexdocs.pm/phoenix/Phoenix.Endpoint.html#socket/3-examples
+## to your endpoint as described here https://hexdocs.pm/phoenix/Phoenix.Endpoint.html#socket/3-examples
 ```
 
 ## Installation
