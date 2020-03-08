@@ -30,6 +30,10 @@ plug(Smlr)
 
 ## To compress your websocket traffic add
 compress: true
+
+## To turn on the caching support add a  line like this to your config.exs
+config :smlr, cache_opts: %{enable: true, timeout: :infinity, limit: nil}
+
 ## to your endpoint as described here https://hexdocs.pm/phoenix/Phoenix.Endpoint.html#socket/3-examples
 ```
 

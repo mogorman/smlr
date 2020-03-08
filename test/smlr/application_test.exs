@@ -2,11 +2,9 @@ defmodule Smlr.ApplicationTest do
   use ExUnit.Case, async: true
 
   test "test application" do
+    Application.stop(:smlr)
     # one test because the sequence of these tests matters also testing cache in here for same reason
     compressed = <<1, 2, 3, 4>>
-
-    # by default doesnt start
-    assert(Smlr.Application.start(nil, nil) == :ok)
 
     result =
       Smlr.Cache.set(compressed, "body", "br", 4, %{cache: %{enable: false, timeout: :infinity, name: :smlr_test}})

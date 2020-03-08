@@ -6,29 +6,25 @@ defmodule Smlr.Application do
   import Supervisor.Spec, warn: false
 
   def start(_type, _args) do
-    with cache_opts <- Config.config(:cache_opts, []),
-         {:ok, true} <- Map.fetch(cache_opts, :enable) do
-      cachex =
-        case Map.fetch(cache_opts, :limit) do
-          {:ok, nil} ->
-            worker(Cachex, [Smlr.DefaultCache, []])
+    cache_opts = Config.config(:cache_opts, []) || %{}
 
-          {:ok, limit} ->
-            worker(Cachex, [Smlr.DefaultCache, [limit: limit, reclaim: 0.1]])
+    cachex =
+      case Map.fetch(cache_opts, :limit) do
+        {:ok, nil} ->
+          worker(Cachex, [Smlr.DefaultCache, []])
 
-          _ ->
-            worker(Cachex, [Smlr.DefaultCache, []])
-        end
+        {:ok, limit} ->
+          worker(Cachex, [Smlr.DefaultCache, [limit: limit, reclaim: 0.1]])
 
-      children = [
-        cachex
-      ]
+        _ ->
+          worker(Cachex, [Smlr.DefaultCache, []])
+      end
 
-      opts = [strategy: :one_for_one, name: Smlr.Supervisor]
-      Supervisor.start_link(children, opts)
-    else
-      _ ->
-        :ok
-    end
+    children = [
+      cachex
+    ]
+
+    opts = [strategy: :one_for_one, name: Smlr.Supervisor]
+    Supervisor.start_link(children, opts)
   end
 end
