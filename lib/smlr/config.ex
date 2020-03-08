@@ -2,7 +2,7 @@ defmodule Smlr.Config do
   @moduledoc false
 
   @defaults [
-    enabled: true,
+    enable: true,
     compressors: [
       Smlr.Compressor.Gzip,
       Smlr.Compressor.Deflate,
@@ -12,9 +12,9 @@ defmodule Smlr.Config do
     compressor_opts: [],
     cache: Smlr.DefaultCache,
     cache_opts: %{
-      enabled: false,
+      enable: false,
       timeout: :infinity,
-      max_cached_responses: nil
+      limit: nil
     },
     ignore_client_weight: false
   ]

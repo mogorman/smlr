@@ -3,19 +3,21 @@ defmodule Smlr.Application do
 
   use Application
   alias Smlr.Config
+  import Supervisor.Spec, warn: false
 
   def start(_type, _args) do
     with cache_opts <- Config.config(:cache_opts, []),
-         {:ok, true} <- Map.get(cache_opts, :enabled) do
-      name = Map.get(cache_opts, :name) || Smlr.DefaultCache
-
+         {:ok, true} <- Map.fetch(cache_opts, :enable) do
       cachex =
         case Map.fetch(cache_opts, :limit) do
+          {:ok, nil} ->
+            worker(Cachex, [Smlr.DefaultCache, []])
+
           {:ok, limit} ->
-            {Cachex, name, [limit: limit]}
+            worker(Cachex, [Smlr.DefaultCache, [limit: limit, reclaim: 0.1]])
 
           _ ->
-            {Cachex, name}
+            worker(Cachex, [Smlr.DefaultCache, []])
         end
 
       children = [

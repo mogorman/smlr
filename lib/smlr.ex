@@ -58,7 +58,7 @@ defmodule Smlr do
             Enum.at(split_scheme, 0)
             |> String.trim()
             |> String.downcase()
-            |> enabled_compressor(compressors)
+            |> enable_compressor(compressors)
             |> choose_compressor(acc)
 
           2 ->
@@ -67,7 +67,7 @@ defmodule Smlr do
             Enum.at(split_scheme, 0)
             |> String.trim()
             |> String.downcase()
-            |> enabled_compressor(compressors, new_weight)
+            |> enable_compressor(compressors, new_weight)
             |> choose_compressor(acc)
         end
       end)
@@ -107,7 +107,7 @@ defmodule Smlr do
     end
   end
 
-  defp enabled_compressor(compression, compressors, weight \\ 0) do
+  defp enable_compressor(compression, compressors, weight \\ 0) do
     case Enum.find(compressors, nil, fn compressor ->
            compressor.name() == compression
          end) do
@@ -125,7 +125,7 @@ defmodule Smlr do
   """
   @spec call(Conn.t(), Keyword.t()) :: Conn.t()
   def call(conn, opts) do
-    case Config.config(:enabled, opts) do
+    case Config.config(:enable, opts) do
       true ->
         conn
         |> Conn.get_req_header("accept-encoding")
@@ -148,12 +148,16 @@ defmodule Smlr do
     end)
   end
 
-  defp compress_response(conn, opts) do
+  def compress_response(conn, opts) do
     compressor = Keyword.get(opts, :compressor)
 
     conn
     |> Conn.put_resp_header("content-encoding", compressor.name())
     |> Map.put(:resp_body, compress(conn.resp_body, conn.request_path, compressor, opts))
+  end
+
+  defp compress(nil, _path, _compressor, _opts) do
+    nil
   end
 
   defp compress(body, path, compressor, opts) do
