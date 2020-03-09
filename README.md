@@ -58,7 +58,7 @@ The following configuration options are supported:
       Smlr.Compressor.Zstd
     ]```
 * `:compressor_opts` A list of tuples, `{Module, level}` where level is the compression number to set. Default `[]`
-* `:cache_opts` A map of options to be set for cachex. Default ```elixir
+* `:cache_opts` A map of options to be set for cachex. Default ```
  cache_opts: %{
       enable: false,
       timeout: :infinity,
