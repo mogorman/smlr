@@ -50,7 +50,7 @@ or by a combination of the two.
 The following configuration options are supported:
 
 * `:enable` enable or disable the plug entirely. Default `true`.
-* `:compressors` A list of Modules that follow the Smlr.Compressor behavior. Default ```elixir
+* `:compressors` A list of Modules that follow the Smlr.Compressor behavior. Default ```
     [
       Smlr.Compressor.Gzip,
       Smlr.Compressor.Deflate,
