@@ -9,8 +9,6 @@
 
 # Smlr: compressor plug
 <!-- end_header -->
-Supports gzip, deflate, br, and zstd
-
 Smlr is a plug for phoenix to compress output to the client, and optionally cache it.
 
 It currently supports Gzip, deflate, br, and Zstd algorithms. The backend is pluggable
