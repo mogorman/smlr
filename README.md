@@ -24,7 +24,7 @@ Metrics are implemented via telemetry.
 ```elixir
 ## in your router simply add
 plug(Smlr)
-## At the end of your plug chain.
+## At the beginning of your plug chain, because Plug.Conn.register_before_send is last in first out ordered.
 
 ## To compress your websocket traffic add
 compress: true
