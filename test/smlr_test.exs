@@ -1,55 +1,64 @@
 defmodule SmlrTest do
   use ExUnit.Case
-  doctest Smlr
+  use Plug.Test
 
-  def build_fake_conn(method, url, path_params) do
-    %Plug.Conn{
-      assigns: %{},
-      body_params: %{},
-      method: method,
-      host: "localhost",
-      params: %{},
-      path_info: [],
-      path_params: path_params,
-      private: %{
-        :phoenix_router => FakeRouter
-      },
-      query_params: %{},
-      query_string: "",
-      remote_ip: {127, 0, 0, 1},
-      req_cookies: [],
-      req_headers: [],
-      request_path: url
-    }
-  end
+  doctest Smlr
 
   test "stupid init test to satisfy coveralls" do
     opts = [ignore_client_weight: true]
     assert(Smlr.init(opts) == opts)
   end
 
-  test "test enable flag can disable plug" do
-    conn = build_fake_conn("GET", "/pet/44", %{"petId" => "44"})
-    assert(Smlr.call(conn, enable: false) == conn)
+  test "test a conn compresses" do
+    conn =
+      conn(:get, "/smlr/pets")
+      |> put_req_header("content-type", "application/json")
+      |> put_req_header("accept-encoding", "gzip")
+      |> SmlrTest.Router.call([])
+
+    assert(Poison.decode!(:zlib.gunzip(conn.resp_body)) == %{"pet" => "asdf"})
+    assert conn.status == 200
   end
 
-  test "test when no compression allowed none is applied" do
-    conn = build_fake_conn("GET", "/pet/44", %{"petId" => "44"})
-    assert(Smlr.call(conn, []) == conn)
+  test "test a conn does not compress if not resuested" do
+    conn =
+      conn(:get, "/smlr/pets")
+      |> put_req_header("content-type", "application/json")
+      |> SmlrTest.Router.call([])
+
+    assert(Poison.decode!(conn.resp_body) == %{"pet" => "asdf"})
+    assert conn.status == 200
   end
 
-  test "test compression function is updated" do
-    conn = build_fake_conn("GET", "/pet/44", %{"petId" => "44"})
-    conn = %Plug.Conn{conn | req_headers: [{"accept-encoding", "gzip"}]}
-    callback_added = Smlr.call(conn, [])
-    assert(conn.before_send == [])
-    assert(Enum.count(callback_added.before_send) == 1)
+  test "test a conn compresses in order presented" do
+    conn =
+      conn(:get, "/smlr/pets")
+      |> put_req_header("content-type", "application/json")
+      |> put_req_header("accept-encoding", "deflate, gzip, br")
+      |> SmlrTest.Router.call([])
+
+    assert(Poison.decode!(:zlib.uncompress(conn.resp_body)) == %{"pet" => "asdf"})
+    assert conn.status == 200
   end
 
-  test "test we actually compress" do
-    conn = build_fake_conn("POST", "/pet/44", %{"petId" => "44"})
-    conn = %Plug.Conn{conn | req_headers: [{"accept-encoding", "gzip"}], resp_body: "%{\"hello\" => \"world\"}"}
-    compressed = Smlr.compress_response(conn, compressor: Smlr.Compressor.Gzip)
-    assert(conn.resp_body == :zlib.gunzip(compressed.resp_body))
+  test "test a conn compresses in order weighted" do
+    conn =
+      conn(:get, "/smlr/pets")
+      |> put_req_header("content-type", "application/json")
+      |> put_req_header("accept-encoding", " deflate;q=0.2 , gzip;q=1, br;q=0.5")
+      |> SmlrTest.Router.call([])
+
+    assert(Poison.decode!(:zlib.gunzip(conn.resp_body)) == %{"pet" => "asdf"})
+    assert conn.status == 200
+  end
+
+  test "test disabled does nothing" do
+    conn =
+      conn(:get, "/smlr_disabled/pets")
+      |> put_req_header("content-type", "application/json")
+      |> SmlrTest.Router.call([])
+
+    assert(Poison.decode!(conn.resp_body) == %{"pet" => "asdf"})
+    assert conn.status == 200
   end
 end
