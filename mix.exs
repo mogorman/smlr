@@ -4,9 +4,10 @@ defmodule Smlr.MixProject do
   def project do
     [
       app: :smlr,
-      version: "1.0.2",
+      version: "1.0.3",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps(),
       description: description(),
       package: package(),
@@ -31,6 +32,10 @@ defmodule Smlr.MixProject do
     ]
   end
 
+  # Specifies which paths to compile per environment.
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
@@ -54,6 +59,8 @@ defmodule Smlr.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:phoenix, "~> 1.4.0", only: [:test]},
+      {:poison, "~> 3.1", only: [:test]},
       {:dialyxir, "~> 1.0.0-rc.7", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.10", only: [:dev, :test]},
       {:credo, "~> 1.1.0", only: [:dev, :test], runtime: false},
