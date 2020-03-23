@@ -3,6 +3,10 @@ defmodule Smlr.ApplicationTest do
 
   test "test application" do
     Application.stop(:smlr)
+    :timer.sleep(200)
+    result = Smlr.Cache.get("body", "br", 4, %{cache_opts: %{enable: true}})
+    assert(is_nil(result))
+
     # one test because the sequence of these tests matters also testing cache in here for same reason
     compressed = <<1, 2, 3, 4>>
 

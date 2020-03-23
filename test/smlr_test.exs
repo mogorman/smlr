@@ -1,5 +1,5 @@
 defmodule SmlrTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   use Plug.Test
 
   doctest Smlr
@@ -45,7 +45,7 @@ defmodule SmlrTest do
     conn =
       conn(:get, "/smlr/pets")
       |> put_req_header("content-type", "application/json")
-      |> put_req_header("accept-encoding", " deflate;q=0.2 , gzip;q=1, br;q=0.5")
+      |> put_req_header("accept-encoding", " deflate;q=0.2 , gzip;q=1, br;q=0.5, invalid;q")
       |> SmlrTest.Router.call([])
 
     assert(Poison.decode!(:zlib.gunzip(conn.resp_body)) == %{"pet" => "asdf"})
@@ -59,6 +59,40 @@ defmodule SmlrTest do
       |> SmlrTest.Router.call([])
 
     assert(Poison.decode!(conn.resp_body) == %{"pet" => "asdf"})
+    assert conn.status == 200
+  end
+
+  test "test ignore weight ignores client weights" do
+    conn =
+      conn(:get, "/smlr_ignore_weight/pets")
+      |> put_req_header("content-type", "application/json")
+      |> put_req_header("accept-encoding", " deflate;q=1.0 , gzip;q=0.2, br;q=0.9")
+      |> SmlrTest.Router.call([])
+
+    assert(Poison.decode!(:zlib.gunzip(conn.resp_body)) == %{"pet" => "asdf"})
+    assert conn.status == 200
+  end
+
+  test "test serves from cache" do
+    Application.put_env(:smlr, :cache_opts, %{enable: true, timeout: :infinity})
+    {:ok, pid} = Smlr.Application.start(nil, nil)
+
+    conn =
+      conn(:get, "/smlr_cache/pets")
+      |> put_req_header("content-type", "application/json")
+      |> put_req_header("accept-encoding", "gzip")
+      |> SmlrTest.Router.call([])
+
+    assert(Poison.decode!(:zlib.gunzip(conn.resp_body)) == %{"pet" => "asdf"})
+
+    conn(:get, "/smlr_cache/pets")
+    |> put_req_header("content-type", "application/json")
+    |> put_req_header("accept-encoding", "gzip")
+    |> SmlrTest.Router.call([])
+
+    Supervisor.stop(pid)
+
+    assert(Poison.decode!(:zlib.gunzip(conn.resp_body)) == %{"pet" => "asdf"})
     assert conn.status == 200
   end
 end
