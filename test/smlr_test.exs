@@ -128,4 +128,15 @@ defmodule SmlrTest do
     assert(Plug.Conn.get_resp_header(conn, "content-encoding") == [])
     assert conn.status == 200
   end
+
+  test "test handles empty application" do
+    conn =
+      conn(:get, "/smlr_types/pets_none")
+      |> put_req_header("content-type", "application/json")
+      |> put_req_header("accept-encoding", " deflate;q=1.0 , gzip;q=0.2, br;q=0.9")
+      |> SmlrTest.Router.call([])
+
+    assert(Poison.decode!(conn.resp_body) == %{"pet" => "asdf"})
+    assert conn.status == 200
+  end
 end
