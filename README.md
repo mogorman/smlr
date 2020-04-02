@@ -78,8 +78,7 @@ The following configuration options are supported:
       "text/javascript",
       "text/plain",
       "text/xml"
-    ]
-```
+    ]```
 ## Metrics
 
 Metrics are offered via the [Telemetry
