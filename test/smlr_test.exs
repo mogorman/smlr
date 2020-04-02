@@ -78,15 +78,15 @@ defmodule SmlrTest do
     conn =
       conn(:get, "/smlr_types/pets")
       |> put_req_header("content-type", "application/json")
-      |> put_req_header("accept-encoding", " deflate;q=1.0 , gzip;q=0.2, br;q=0.9")
+      |> put_req_header("accept-encoding", "gzip")
       |> SmlrTest.Router.call([])
 
     assert(Poison.decode!(:zlib.gunzip(conn.resp_body)) == %{"pet" => "asdf"})
     assert conn.status == 200
 
     conn =
-      conn(:get, "/smlr_types/pets")
-      |> put_req_header("content-type", "application/zip")
+      conn(:get, "/smlr_types/pets_zip")
+      |> put_req_header("content-type", "application/json")
       |> put_req_header("accept-encoding", " deflate;q=1.0 , gzip;q=0.2, br;q=0.9")
       |> SmlrTest.Router.call([])
 

@@ -9,4 +9,10 @@ defmodule SmlrTest.PetsController do
     conn
     |> Plug.Conn.send_file(200, "README.md")
   end
+
+  def index_zip(conn, _params) do
+    conn
+    |> Plug.Conn.put_resp_content_type("application/zip")
+    |> Plug.Conn.send_resp(200,"{\"pet\": \"asdf\"}")
+  end
 end

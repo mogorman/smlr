@@ -65,5 +65,6 @@ defmodule SmlrTest.Router do
     pipe_through(:api_types)
     get("/pets", PetsController, :index)
     get("/pets_nil", PetsController, :index_nil)
+    get("/pets_zip", PetsController, :index_zip)
   end
 end
