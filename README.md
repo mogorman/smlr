@@ -65,7 +65,21 @@ The following configuration options are supported:
       limit: nil
     }```
 * `:ignore_client_weight` Compress via the order of the `compressors` list rather than what the client indicated their preference is. Default `false`
-
+* `:all_types` Compress all types of data sent into the Plug. Default `true`
+* `:types` If all types is set to false only compress if the content-type matches an item in the list. Default ```
+    [
+      "application/atom+xml",
+      "application/javascript",
+      "application/json",
+      "application/xml",
+      "application/xml+rss",
+      "image/svg+xml",
+      "text/css",
+      "text/javascript",
+      "text/plain",
+      "text/xml"
+    ]
+```
 ## Metrics
 
 Metrics are offered via the [Telemetry
