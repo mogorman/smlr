@@ -167,6 +167,7 @@ defmodule Smlr do
       |> Map.put(:resp_body, compress(body, conn.request_path, compressor, opts))
     else
       _ ->
+        :telemetry.execute([:smlr, :request, :pass], %{}, %{path: conn.request_path})
         conn
     end
   end
