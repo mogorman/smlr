@@ -17,6 +17,7 @@ defmodule SmlrTest do
       |> SmlrTest.Router.call([])
 
     assert(Poison.decode!(:zlib.gunzip(conn.resp_body)) == %{"pet" => "asdf"})
+    assert(Plug.Conn.get_resp_header(conn, "content-encoding") == ["gzip"])
     assert conn.status == 200
   end
 
@@ -73,6 +74,26 @@ defmodule SmlrTest do
     assert conn.status == 200
   end
 
+  test "test uses content type filtering" do
+    conn =
+      conn(:get, "/smlr_types/pets")
+      |> put_req_header("content-type", "application/json")
+      |> put_req_header("accept-encoding", " deflate;q=1.0 , gzip;q=0.2, br;q=0.9")
+      |> SmlrTest.Router.call([])
+
+    assert(Poison.decode!(:zlib.gunzip(conn.resp_body)) == %{"pet" => "asdf"})
+    assert conn.status == 200
+
+    conn =
+      conn(:get, "/smlr_types/pets")
+      |> put_req_header("content-type", "application/zip")
+      |> put_req_header("accept-encoding", " deflate;q=1.0 , gzip;q=0.2, br;q=0.9")
+      |> SmlrTest.Router.call([])
+
+    assert(Poison.decode!(conn.resp_body) == %{"pet" => "asdf"})
+    assert conn.status == 200
+  end
+
   test "test serves from cache" do
     Application.put_env(:smlr, :cache_opts, %{enable: true, timeout: :infinity})
     {:ok, pid} = Smlr.Application.start(nil, nil)
@@ -93,6 +114,18 @@ defmodule SmlrTest do
     Supervisor.stop(pid)
 
     assert(Poison.decode!(:zlib.gunzip(conn.resp_body)) == %{"pet" => "asdf"})
+    assert conn.status == 200
+  end
+
+  test "test nil data does not get header" do
+    conn =
+      conn(:get, "/smlr_types/pets_nil")
+      |> put_req_header("content-type", "application/json")
+      |> put_req_header("accept-encoding", " deflate;q=1.0 , gzip;q=0.2, br;q=0.9")
+      |> SmlrTest.Router.call([])
+
+    conn.resp_body
+    assert(Plug.Conn.get_resp_header(conn, "content-encoding") == [])
     assert conn.status == 200
   end
 end

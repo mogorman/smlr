@@ -135,20 +135,34 @@ defmodule Smlr do
 
   defp pass_or_compress(compressor, conn, opts) do
     Conn.register_before_send(conn, fn conn ->
-      compress_response(conn, opts ++ [compressor: compressor])
+      compress_response(conn, conn.resp_body, opts ++ [compressor: compressor])
     end)
   end
 
-  def compress_response(conn, opts) do
-    compressor = Keyword.get(opts, :compressor)
-
-    conn
-    |> Conn.put_resp_header("content-encoding", compressor.name())
-    |> Map.put(:resp_body, compress(conn.resp_body, conn.request_path, compressor, opts))
+  defp check_content_type?(true, _, _) do
+    true
   end
 
-  defp compress(nil, _path, _compressor, _opts) do
-    nil
+  defp check_content_type?(false, [application_type], opts) do
+    application_type in Config.config(:types, opts)
+  end
+
+  def compress_response(conn, nil, _opts) do
+    conn
+  end
+
+  def compress_response(conn, body, opts) do
+    with all_types <- Config.config(:all_types, opts),
+         true <- check_content_type?(all_types, Conn.get_resp_header(conn, "content-type"), opts) do
+      compressor = Keyword.get(opts, :compressor)
+
+      conn
+      |> Conn.put_resp_header("content-encoding", compressor.name())
+      |> Map.put(:resp_body, compress(body, conn.request_path, compressor, opts))
+    else
+      _ ->
+        conn
+    end
   end
 
   defp compress(body, path, compressor, opts) do
@@ -160,8 +174,6 @@ defmodule Smlr do
           compressor: compressor.name(),
           level: compressor.level(opts)
         })
-
-        body = :erlang.iolist_to_binary(body)
 
         compressor.compress(body, opts)
         |> Cache.set(body, compressor.name(), compressor.level(opts), Config.config(:cache_opts, opts))

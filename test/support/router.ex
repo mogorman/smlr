@@ -20,6 +20,14 @@ defmodule SmlrTest.Router do
     )
   end
 
+  pipeline :api_types do
+    plug(:accepts, ["json"])
+
+    plug(Smlr,
+      all_types: false
+    )
+  end
+
   pipeline :api_cache do
     plug(:accepts, ["json"])
 
@@ -51,5 +59,11 @@ defmodule SmlrTest.Router do
   scope "/smlr_cache", SmlrTest do
     pipe_through(:api_cache)
     get("/pets", PetsController, :index)
+  end
+
+  scope "/smlr_types", SmlrTest do
+    pipe_through(:api_types)
+    get("/pets", PetsController, :index)
+    get("/pets_nil", PetsController, :index_nil)
   end
 end

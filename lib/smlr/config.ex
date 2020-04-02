@@ -9,6 +9,19 @@ defmodule Smlr.Config do
       Smlr.Compressor.Brotli,
       Smlr.Compressor.Zstd
     ],
+    all_types: true,
+    types: [
+      "application/atom+xml",
+      "application/javascript",
+      "application/json",
+      "application/xml",
+      "application/xml+rss",
+      "image/svg+xml",
+      "text/css",
+      "text/javascript",
+      "text/plain",
+      "text/xml"
+    ],
     compressor_opts: [],
     cache_opts: %{
       enable: false,
