@@ -143,6 +143,10 @@ defmodule Smlr do
     true
   end
 
+  defp check_content_type?(false, [], _opts) do
+    false
+  end
+
   defp check_content_type?(false, [application_type], opts) do
     Enum.any?(Config.config(:types, opts), fn type ->
       String.contains?(application_type, type)

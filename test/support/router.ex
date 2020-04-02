@@ -66,5 +66,6 @@ defmodule SmlrTest.Router do
     get("/pets", PetsController, :index)
     get("/pets_nil", PetsController, :index_nil)
     get("/pets_zip", PetsController, :index_zip)
+    get("/pets_none", PetsController, :index_none)
   end
 end
