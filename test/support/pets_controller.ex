@@ -13,6 +13,6 @@ defmodule SmlrTest.PetsController do
   def index_zip(conn, _params) do
     conn
     |> Plug.Conn.put_resp_content_type("application/zip")
-    |> Plug.Conn.send_resp(200,"{\"pet\": \"asdf\"}")
+    |> Plug.Conn.send_resp(200, "{\"pet\": \"asdf\"}")
   end
 end

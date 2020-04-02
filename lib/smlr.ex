@@ -145,7 +145,8 @@ defmodule Smlr do
 
   defp check_content_type?(false, [application_type], opts) do
     Enum.any?(Config.config(:types, opts), fn type ->
-      String.contains?(application_type, type) end)
+      String.contains?(application_type, type)
+    end)
   end
 
   def compress_response(conn, nil, _opts) do
